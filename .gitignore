@@ -1,5 +1,6 @@
 # project
-data
+data/classifiers/**/*
+!data/classifiers/.gitkeep
 
 # ide
 .idea
