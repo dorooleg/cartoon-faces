@@ -26,7 +26,6 @@ args = vars(ap.parse_args())
 
 
 mermaid_img = cv2.imread('./data/mermaid.png', cv2.IMREAD_UNCHANGED)
-print(mermaid_img)
 
 
 
@@ -50,56 +49,29 @@ while True:
     frame = vs.read()
     frame = imutils.resize(frame, width=400)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # detect faces in the grayscale frame
     rects = detector(gray, 0)
 
-    # loop over the face detections
     for rect in rects:
-        # determine the facial landmarks for the face region, then
-        # convert the facial landmark (x, y)-coordinates to a NumPy
-        # array
         shape = predictor(gray, rect)
         shape = face_utils.shape_to_np(shape)
+        mermaid_resized = cv2.resize(mermaid_img, (frame.shape[1], frame.shape[0]))
 
+        m_bch, m_gch, m_rch, alpha = cv2.split(mermaid_resized)
+        f_bch, f_gch, f_rch = cv2.split(frame)
 
-        # rows,cols,channels = frame.shape
-        # roi = mermaid_img[0:rows, 0:cols ]
-        # # Now create a mask of logo and create its inverse mask also
-        # framegray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-        # ret, mask = cv2.threshold(framegray, 10, 255, cv2.THRESH_BINARY)
-        # mask_inv = cv2.bitwise_not(mask)
-        # # Now black-out the area of logo in ROI
-        # mermaid_img_bg = cv2.bitwise_and(roi,roi,mask = mask_inv)
-        # # Take only region of logo from logo image.
-        # frame_fg = cv2.bitwise_and(frame,frame,mask = mask)
-        # # Put logo in ROI and modify the main image
-        # dst = cv2.add(mermaid_img_bg,frame_fg)
-        # mermaid_img[0:rows, 0:cols ] = dst
+        beta = cv2.bitwise_not(alpha)
 
-        mermaid_img = cv2.resize(mermaid_img, (frame.shape[1], frame.shape[0]))
-        print(mermaid_img.shape, frame.shape)
+        f_bch = cv2.bitwise_and(beta, f_bch)
+        f_gch = cv2.bitwise_and(beta, f_gch)
+        f_rch = cv2.bitwise_and(beta, f_rch)
 
-        # alpha = 0.5
-        # beta = ( 1.0 - alpha );
-        # cv2.addWeighted(frame, alpha, mermaid_img, beta, 0.0, frame);
+        m_bch = cv2.bitwise_and(alpha, m_bch)
+        m_gch = cv2.bitwise_and(alpha, m_gch)
+        m_rch = cv2.bitwise_and(alpha, m_rch)
 
-        b_channel, g_channel, r_channel, alpha = cv2.split(mermaid_img)
-        b_channel2, g_channel2, r_channel2 = cv2.split(frame)
-
-        mm = cv2.merge((b_channel, g_channel, r_channel, alpha))
-        nn = cv2.merge((b_channel2, g_channel2, r_channel2, 1.0 - alpha))
-        frame = nn + mm
-
-
-
-        # alpha_channel = np.ones(b_channel.shape, dtype=b_channel.dtype) * 50 #creating a dummy alpha channel image.
-        # frame = mermaid_img * alpha + (1 - alpha) * frame
-
-        # frame = cv2.merge((b_channel, g_channel, r_channel, 1.0 -alpha_channel))
-
-
-        # img_RGBA = cv2.merge((b_channel, g_channel, r_channel, alpha_channel))
+        nn = cv2.merge((m_bch, m_gch, m_rch))
+        mm = cv2.merge((f_bch, f_gch, f_rch))
+        frame2 = nn + mm
 
 
 
@@ -116,7 +88,7 @@ while True:
 
 
     # show the frame
-    cv2.imshow('Frame', frame)
+    cv2.imshow('Frame', frame2)
     # cv2.imshow('Frame', memaid_img)
     key = cv2.waitKey(1) & 0xFF
 
