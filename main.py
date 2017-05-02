@@ -25,7 +25,7 @@ ap.add_argument('-r', '--picamera', type=int, default=-1,
                 help='whether or not the Raspberry Pi camera should be used')
 args = vars(ap.parse_args())
 
-mermaid_img = cv2.imread('./data/mermaid.png', cv2.IMREAD_COLOR)
+mermaid_img = cv2.imread('./images/mermaid.png', cv2.IMREAD_UNCHANGED)
 
 
 SCALE_FACTOR = 1
@@ -202,6 +202,7 @@ while True:
     im1 = imutils.resize(im1, width=400)
     im1 = cv2.resize(im1, (im1.shape[1], im1.shape[0]))
     landmarks1 = get_landmarks(im1)
+    im1 = cv2.cvtColor(im1, cv2.COLOR_BGR2BGRA)
 
     im2 = mermaid_img
     im2 = cv2.resize(im2, (im2.shape[1], im2.shape[0]))
@@ -227,11 +228,17 @@ while True:
         # print(combined_mask)
 
         warped_im2 = warp_im(im2, M, im1.shape)
+        alpha = (warped_im2[:, :, 0] == 0) * 255
+        beta = 255 - alpha
+
+        for i in range(3):
+            im1[:, :, i] = np.bitwise_and(im1[:, :, i], alpha)
+            warped_im2[:, :, i] = np.bitwise_and(warped_im2[:, :, i], beta)
 
         # warped_corrected_im2 = correct_colours(im1, warped_im2, landmarks1)
 
         # print(1)
-        output_im = im1 + warped_im2
+        output_im = warped_im2 + im1
         # output_im = im1 * (1.0 - combined_mask) + warped_corrected_im2 * combined_mask
     else:
         output_im = im1
