@@ -1,3 +1,4 @@
+
 # project
 data/classifiers/**/*
 !data/classifiers/.gitkeep
@@ -6,6 +7,7 @@ data/classifiers/**/*
 .idea
 
 # os
+
 .directory
 .DS_Store
 .AppleDouble
