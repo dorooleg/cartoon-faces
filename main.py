@@ -30,7 +30,6 @@ print('[INFO] camera sensor warming up...')
 vs = VideoStream().start()
 time.sleep(2.0)
 
-
 while True:
     im1 = vs.read()
     im1 = imutils.resize(im1, width=400)
