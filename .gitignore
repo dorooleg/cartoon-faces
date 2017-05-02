@@ -1,7 +1,11 @@
+# project
+data
+
 # ide
 .idea
 
 # os
+.directory
 .DS_Store
 .AppleDouble
 .LSOverride
