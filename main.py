@@ -18,7 +18,6 @@ def create_effect_pipeline(detector):
     pipeline.add_list([mask_imposter])
 
     return pipeline
-
 # initialize dlib's face detector (HOG-based) and then create
 # the facial landmark predictor
 print('[INFO] loading facial landmark predictor...')
