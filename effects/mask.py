@@ -2,6 +2,7 @@
 import os
 import cv2
 import numpy as np
+import effects.effect as effect
 import effects.face as face
 
 
@@ -59,26 +60,25 @@ class Loader:
                 marks[name] = np.transpose(data)
 
         for name, path in _traverse_dir(images_path):
-            print(name, path)
             image = cv2.imread(path, cv2.IMREAD_COLOR)
 
-            if image is None:
-                continue
-            if name in marks:
-                images[name] = image, marks[name]
-                continue
-            faces = self.detector.detect(image)
-            if len(faces) > 0:
-                images[name] = image, faces[0]
+            if image is not None:
+                if name in marks:
+                    images[name] = image, marks[name]
+                    continue
+                faces = self.detector.detect(image)
+                if len(faces) > 0:
+                    images[name] = image, faces[0]
 
         return images
 
 
-class PlainImposter:
-    def __init__(self, mask_image, mask_markup):
+class PlainImposter(effect.Effect):
+    def __init__(self, mask_image, mask_markup, detector):
         self.image = mask_image
         self.markup = mask_markup
         self.markup_align = mask_markup[face.ALIGN_POINTS]
+        self.detector = detector
 
     def __warp_im(self, transposition, dshape):
         res = np.zeros(dshape, dtype=self.image.dtype)
@@ -90,10 +90,9 @@ class PlainImposter:
                        flags=cv2.WARP_INVERSE_MAP)
         return res
 
-    def impose(self, image, landmarks1):
+    def process(self, image):
         res = image[:]
-
-        for marks in landmarks1:
+        for marks in self.detector.detect(image):
             M = get_transposition(marks[face.ALIGN_POINTS], self.markup_align)
             warped_im2 = self.__warp_im(M, res.shape)
             alpha = (warped_im2 == 0) * 255
