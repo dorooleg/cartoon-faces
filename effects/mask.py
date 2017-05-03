@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import effects.effect as effect
 import effects.face as face
-
+import random
 
 def get_transposition(pts1, pts2):
     """
@@ -54,6 +54,7 @@ class Loader:
         marks_path = './data/mask_landmarks'
         images, marks = {}, {}
 
+        list_name_mask = {}
         for name, path in _traverse_dir(marks_path):
             data = np.genfromtxt(path, delimiter=',', loose=True, invalid_raise=False)
             if data is not None and data.size > 0:
@@ -61,7 +62,6 @@ class Loader:
 
         for name, path in _traverse_dir(images_path):
             image = cv2.imread(path, cv2.IMREAD_COLOR)
-
             if image is not None:
                 if name in marks:
                     images[name] = image, marks[name]
@@ -69,8 +69,8 @@ class Loader:
                 faces = self.detector.detect(image)
                 if len(faces) > 0:
                     images[name] = image, faces[0]
-
-        return images
+            list_name_mask[name] = path
+        return images, list_name_mask
 
 
 class PlainImposter(effect.Effect):
@@ -79,9 +79,21 @@ class PlainImposter(effect.Effect):
         self.markup = mask_markup
         self.markup_align = mask_markup[face.ALIGN_POINTS]
         self.detector = detector
+        # self.name_all_mask = name_all_mask
+        # move = [[0, 0, -10],
+        #         [0, 0, -125], # -50
+        #         [0, 0, 0]]
+        move = [[0, 0, 0],
+                [0, 0, 30],  # -50
+                [0, 0, 0]]
+        # move = [[0., 0, -10],
+        #         [0, 0.1, 0], # -50
+        #         [0, 0, 0]]
+        self.move = np.array(move)
 
     def __warp_im(self, transposition, dshape):
         res = np.zeros(dshape, dtype=self.image.dtype)
+        transposition += self.move
         cv2.warpAffine(self.image,
                        transposition[:2],
                        (dshape[1], dshape[0]),
@@ -101,5 +113,4 @@ class PlainImposter(effect.Effect):
             res[:] = np.bitwise_and(res, alpha)
             warped_im2[:] = np.bitwise_and(warped_im2[:], beta)
             res += warped_im2
-
         return res
