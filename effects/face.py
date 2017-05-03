@@ -39,5 +39,4 @@ class Detector:
             parts = self.predictor(image, rect).parts()
             points = np.matrix([[p.x, p.y] for p in parts])
             faces.append(points)
-
         return faces

@@ -10,34 +10,42 @@ import effects.face as face
 import effects.mask as mask
 
 
-def create_effect_pipeline(detector, face_detector):
-    masks = mask.Loader(detector=face_detector).load()
-    mermaid = masks['mermaid']
+def create_effect_pipeline(face_detector, mask_name):
+    masks, names = mask.Loader(detector=face_detector).load()
+    mermaid = masks[mask_name]
     mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], face_detector)
 
     pipeline = effect.Pipeline()
     pipeline.add_list([mask_imposter])
 
-    return pipeline
+    return pipeline, names
 
 
-def init():
+def replace_faces(faces_name, face_detector):
+    print("replace name on" + faces_name)
+    return create_effect_pipeline(face_detector, faces_name)
+
+
+def init(mask_name):
     # initialize dlib's face detector (HOG-based) and then create
     # the facial landmark predictor
     print('[INFO] loading facial landmark predictor...')
     face_detector = face.Detector()
-    pipeline = create_effect_pipeline(face_detector, face_detector)
+    pipeline, image_names = create_effect_pipeline(face_detector, mask_name)
 
     # initialize the video stream and allow the cammera sensor to warmup
     print('[INFO] camera sensor warming up...')
     vs = VideoStream().start()
     time.sleep(2.0)
-    return vs, pipeline
+    return vs, pipeline, face_detector, image_names
 
 
 def create(vs, pipeline):
     im1 = vs.read()
     im1 = imutils.resize(im1, width=400)
+    print(pipeline)
+    if hasattr(pipeline, '__len__') and len(pipeline) > 1:
+        pipeline = pipeline[0]
     res = pipeline.process(im1)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
