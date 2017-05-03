@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import cv2
 import numpy as np
 import effects.face as face
@@ -29,6 +30,48 @@ def get_transposition(pts1, pts2):
     st = np.hstack(((s2 / s1) * R, c2.T - (s2 / s1) * R * c1.T))[:, 0:3]
     nl = np.matrix([0., 0., 1.])
     return np.vstack([st, nl])
+
+
+def _traverse_dir(path):
+    for filename in os.listdir(path):
+        name = os.path.splitext(filename)[0]
+        filepath = os.path.join(path, filename)
+        if name.startswith('.'):
+            continue
+        yield (name, filepath)
+
+
+class Loader:
+    def __init__(self, **kargs):
+        if 'detector' in kargs:
+            self.detector = kargs['detector']
+        else:
+            self.detector = face.Detector()
+
+    def load(self):
+        images_path = './data/images'
+        marks_path = './data/mask_landmarks'
+        images, marks = {}, {}
+
+        for name, path in _traverse_dir(marks_path):
+            data = np.genfromtxt(path, delimiter=',', loose=True, invalid_raise=False)
+            if data is not None and data.size > 0:
+                marks[name] = np.transpose(data)
+
+        for name, path in _traverse_dir(images_path):
+            print(name, path)
+            image = cv2.imread(path, cv2.IMREAD_COLOR)
+
+            if image is None:
+                continue
+            if name in marks:
+                images[name] = image, marks[name]
+                continue
+            faces = self.detector.detect(image)
+            if len(faces) > 0:
+                images[name] = image, faces[0]
+
+        return images
 
 
 class PlainImposter:
