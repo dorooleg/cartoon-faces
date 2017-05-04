@@ -68,23 +68,23 @@ class Loader:
             if data is not None and data.size > 0:
                 marks[name] = np.transpose(data)
 
-        for name, path in _traverse_dir(images_path):
-            list_name_mask[name] = path
-            image = cv2.imread(path, cv2.IMREAD_COLOR)
-            if image is not None:
-                if name in marks:
-                    images[name] = image, marks[name]
-                    continue
-                faces = self.detector.detect(image)
-                if len(faces) > 0:
-                    images[name] = image, faces[0]
-
         for name, path in _traverse_dir(move_path):
             data = np.genfromtxt(path, delimiter=',', loose=True, invalid_raise=False)
             if data is not None and data.size > 0:
                 move[name] = np.transpose(data)
 
-        return images, list_name_mask, move
+        for name, path in _traverse_dir(images_path):
+            list_name_mask[name] = path
+            image = cv2.imread(path, cv2.IMREAD_COLOR)
+            if image is not None:
+                if name in marks:
+                    images[name] = image, marks[name], move[name]
+                    continue
+                faces = self.detector.detect(image)
+                if len(faces) > 0:
+                    images[name] = image, faces[0], move[name]
+
+        return images, list_name_mask
 
 
 class PlainImposter(effect.Effect):

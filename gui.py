@@ -5,9 +5,7 @@ from PIL import Image, ImageTk
 import detector
 import cv2
 
-
-def init_camera(mask_name='mermaid'):
-    return detector.init(mask_name)
+import effects.mask as mask
 
 
 class gui(Tk):
@@ -15,7 +13,10 @@ class gui(Tk):
         Tk.__init__(self, *args, **kwargs)
         self.geometry("600x600")
         self.global_name = ""
-        self.vs, self.pipeline, self.image_names = init_camera()
+
+        self.masks, self.image_names = mask.Loader().load()
+        self.vs = detector.get_video_stream()
+        self.pipeline = None
 
         separator = Frame(self, height=200, relief=SUNKEN)
         image = Image.open("./data/images/mermaid.png")
@@ -26,6 +27,9 @@ class gui(Tk):
         separator.pack(fill=X, padx=10)
         self.flag = True
         self.add_button()
+
+    def set_mask_effect(self, mask_name):
+        self.pipeline = detector.create_effect_pipeline(mask_name, self.masks)
 
     def add_button(self):
         for name, path in self.image_names.items():
@@ -41,9 +45,10 @@ class gui(Tk):
             b.pack(side=LEFT, expand=1)
 
     def callback(self):
-        if not hasattr(self, 'pipline'):
+        if self.pipeline is None:
             return
-        frame = detector.create(self.vs, self.pipline)
+        frame = detector.create(self.vs, self.pipeline)
+
         cv2_im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(cv2_im)
         img2 = ImageTk.PhotoImage(img)
@@ -61,9 +66,10 @@ class gui(Tk):
             name = event.widget.cget("text")
         else:
             name = event
+
         print("[LOG] replace mask from {} to {}".format(self.global_name, name))
         if self.global_name != name:
-            self.pipline = detector.replace_faces(name)
+            self.set_mask_effect(name)
         self.global_name = name
         if self.flag:
             self.flag = False
