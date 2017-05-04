@@ -59,14 +59,12 @@ while(1):
     if k == ord('q'):
         break
     if k == ord('a'):
-        mylist_x = [str(x) for (x,_) in points]
-        mylist_y = [str(x) for (_, x) in points]
-        print(", ".join(mylist_x))
-        print(", ".join(mylist_y))
-        with open(os.path.splitext(filename)[0]+'.csv', 'w') as the_file:
-            the_file.write(", ".join(mylist_x))
-            the_file.write("\n")
-            the_file.write(", ".join(mylist_y))
+        with open(os.path.splitext(filename)[0]+'.csv', 'w') as file:
+            mylist_x = [str(x) for (x, _) in points]
+            mylist_y = [str(x) for (_, x) in points]
+            file.write(", ".join(mylist_x))
+            file.write("\n")
+            file.write(", ".join(mylist_y))
 
 
 cv2.destroyAllWindows()
