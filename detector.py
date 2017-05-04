@@ -10,20 +10,22 @@ import effects.face as face
 import effects.mask as mask
 
 masks = {}
+masks_move = {}
 
 
 def create_effect_pipeline(face_detector, mask_name):
-    global masks
-    masks, names = mask.Loader(detector=face_detector).load()
+    global masks_move, masks
+    masks, names, masks_move = mask.Loader(detector=face_detector).load()
     mermaid = masks[mask_name]
-    mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], face_detector)
+    move = masks_move[mask_name]
+    mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], move, face_detector)
     pipeline = effect.Pipeline()
     pipeline.add_list([mask_imposter])
     return pipeline, names
 
 
-def replace_mask(mask_arg, face_detector):
-    mask_imposter = mask.PlainImposter(mask_arg[0], mask_arg[1], face_detector)
+def replace_mask(mask_arg, mask_move, face_detector):
+    mask_imposter = mask.PlainImposter(mask_arg[0], mask_arg[1], mask_move, face_detector)
     pipeline = effect.Pipeline()
     pipeline.add_list([mask_imposter])
     return pipeline
@@ -32,7 +34,7 @@ def replace_mask(mask_arg, face_detector):
 def replace_faces(faces_name, face_detector):
 
     print("replace name on" + faces_name)
-    return replace_mask(masks[faces_name], face_detector)
+    return replace_mask(masks[faces_name], masks_move[faces_name], face_detector)
 
 
 def init(mask_name):

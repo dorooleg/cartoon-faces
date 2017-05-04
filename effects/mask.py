@@ -52,7 +52,8 @@ class Loader:
     def load(self):
         images_path = './data/images'
         marks_path = './data/mask_landmarks'
-        images, marks = {}, {}
+        move_path = './data/mask_move'
+        images, marks, move = {}, {}, {}
         list_name_mask = {}
         for name, path in _traverse_dir(marks_path):
             data = np.genfromtxt(path, delimiter=',', loose=True, invalid_raise=False)
@@ -69,21 +70,29 @@ class Loader:
                 faces = self.detector.detect(image)
                 if len(faces) > 0:
                     images[name] = image, faces[0]
-        return images, list_name_mask
+
+        for name, path in _traverse_dir(move_path):
+            data = np.genfromtxt(path, delimiter=',', loose=True, invalid_raise=False)
+            if data is not None and data.size > 0:
+                move[name] = np.transpose(data)
+
+        return images, list_name_mask, move
 
 
 class PlainImposter(effect.Effect):
-    def __init__(self, mask_image, mask_markup, detector):
+    def __init__(self, mask_image, mask_markup, mask_move, detector):
         self.image = mask_image
         self.markup = mask_markup
+        self.move = mask_move
         self.markup_align = mask_markup[face.ALIGN_POINTS]
         self.detector = detector
         # self.name_all_mask = name_all_mask
         # move = [[0, 0, -10],
         #         [0, 0, -125], # -50
         #         [0, 0, 0]]
-        move = [[0, 0, 0],
-                [0, 0, 30],  # -50
+        print(self.move)
+        move = [[0, 0, self.move[0]],
+                [0, 0, self.move[1]],  # -50
                 [0, 0, 0]]
         # move = [[0., 0, -10],
         #         [0, 0.1, 0], # -50
