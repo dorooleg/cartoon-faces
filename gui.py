@@ -34,10 +34,8 @@ class gui(Tk):
     def add_button(self):
         for name, path in self.image_names.items():
             img = cv2.imread(path,  cv2.IMREAD_UNCHANGED)
-            # cv2.imshow(name, img)
             img = cv2.resize(img, (50, 50))
             cv2_im = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
-            # cv2.waitKey()
             image = Image.fromarray(cv2_im).copy()
             photo = ImageTk.PhotoImage(image)
             b = Button(image=photo, text=name, command=self.call)
