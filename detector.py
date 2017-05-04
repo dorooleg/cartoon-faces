@@ -9,21 +9,30 @@ import effects.effect as effect
 import effects.face as face
 import effects.mask as mask
 
+masks = {}
+
 
 def create_effect_pipeline(face_detector, mask_name):
+    global masks
     masks, names = mask.Loader(detector=face_detector).load()
     mermaid = masks[mask_name]
     mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], face_detector)
-
     pipeline = effect.Pipeline()
     pipeline.add_list([mask_imposter])
-
     return pipeline, names
 
 
+def replace_mask(mask_arg, face_detector):
+    mask_imposter = mask.PlainImposter(mask_arg[0], mask_arg[1], face_detector)
+    pipeline = effect.Pipeline()
+    pipeline.add_list([mask_imposter])
+    return pipeline
+
+
 def replace_faces(faces_name, face_detector):
+
     print("replace name on" + faces_name)
-    return create_effect_pipeline(face_detector, faces_name)
+    return replace_mask(masks[faces_name], face_detector)
 
 
 def init(mask_name):
@@ -42,9 +51,7 @@ def init(mask_name):
 
 def create(vs, pipeline):
     im1 = vs.read()
-    # print(im1)
     im1 = imutils.resize(im1, width=400)
-    # print(pipeline)
     if hasattr(pipeline, '__len__') and len(pipeline) > 1:
         pipeline = pipeline[0]
     res = pipeline.process(im1)
