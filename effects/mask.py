@@ -55,7 +55,6 @@ class Loader:
         images, marks = {}, {}
         list_name_mask = {}
         for name, path in _traverse_dir(marks_path):
-            print(name, path)
             data = np.genfromtxt(path, delimiter=',', loose=True, invalid_raise=False)
             if data is not None and data.size > 0:
                 marks[name] = np.transpose(data)
