@@ -10,29 +10,31 @@ import effects.face as face
 import effects.mask as mask
 
 masks = {}
+mask_imposter = None
 
 
 def create_effect_pipeline(face_detector, mask_name):
-    global masks
+    global masks, mask_imposter
     masks, names = mask.Loader(detector=face_detector).load()
     mermaid = masks[mask_name]
-    mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], face_detector)
+    mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], masks, face_detector)
     pipeline = effect.Pipeline()
     pipeline.add_list([mask_imposter])
     return pipeline, names
 
 
-def replace_mask(mask_arg, face_detector):
-    mask_imposter = mask.PlainImposter(mask_arg[0], mask_arg[1], face_detector)
+def replace_mask(mask_arg):
+    global mask_imposter
+    # print(mask_imposter)
+    mask_imposter = mask_imposter.set_mask(mask_arg[0], mask_arg[1])
     pipeline = effect.Pipeline()
     pipeline.add_list([mask_imposter])
     return pipeline
 
 
-def replace_faces(faces_name, face_detector):
-
-    print("replace name on" + faces_name)
-    return replace_mask(masks[faces_name], face_detector)
+def replace_faces(faces_name):
+    print("replace name on " + faces_name)
+    return replace_mask(masks[faces_name])
 
 
 def init(mask_name):
@@ -46,7 +48,7 @@ def init(mask_name):
     print('[INFO] camera sensor warming up...')
     vs = VideoStream().start()
     time.sleep(2.0)
-    return vs, pipeline, face_detector, image_names
+    return vs, pipeline, image_names
 
 
 def create(vs, pipeline):

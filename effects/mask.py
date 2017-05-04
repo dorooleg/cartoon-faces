@@ -6,6 +6,7 @@ import effects.effect as effect
 import effects.face as face
 import random
 
+
 def get_transposition(pts1, pts2):
     """
     Return an affine transformation [s * R | T] such that:
@@ -73,11 +74,13 @@ class Loader:
 
 
 class PlainImposter(effect.Effect):
-    def __init__(self, mask_image, mask_markup, detector):
+    def __init__(self, mask_image, mask_markup, all_mask, detector):
         self.image = mask_image
         self.markup = mask_markup
         self.markup_align = mask_markup[face.ALIGN_POINTS]
         self.detector = detector
+        self.all_mask = all_mask
+        self.name = [name for name, _ in all_mask.items()]
         # self.name_all_mask = name_all_mask
         # move = [[0, 0, -10],
         #         [0, 0, -125], # -50
@@ -90,9 +93,21 @@ class PlainImposter(effect.Effect):
         #         [0, 0, 0]]
         self.move = np.array(move)
 
-    def __warp_im(self, transposition, dshape):
+    def set_mask(self, mask_image, mask_markup):
+        self.image = mask_image
+        self.markup = mask_markup
+        self.markup_align = mask_markup[face.ALIGN_POINTS]
+        return self
+
+    def __warp_im(self, transposition, dshape, idx=1):
         res = np.zeros(dshape, dtype=self.image.dtype)
         transposition += self.move
+        if idx > 0:
+            name = random.choice(self.name)
+            self.image = self.all_mask[name][0]
+            self.markup = self.all_mask[name][1]
+            self.markup_align = self.all_mask[name][1][face.ALIGN_POINTS]
+
         cv2.warpAffine(self.image,
                        transposition[:2],
                        (dshape[1], dshape[0]),
@@ -103,9 +118,11 @@ class PlainImposter(effect.Effect):
 
     def process(self, image):
         res = image[:]
-        for marks in self.detector.detect(image):
+        self.face_count = len(self.detector.detect(image))
+        print("face count :", len(self.detector.detect(image)))
+        for idx, marks in enumerate(self.detector.detect(image)):
             M = get_transposition(marks[face.ALIGN_POINTS], self.markup_align)
-            warped_im2 = self.__warp_im(M, res.shape)
+            warped_im2 = self.__warp_im(M, res.shape, idx)
             alpha = (warped_im2 == 0) * 255
             beta = 255 - alpha
 

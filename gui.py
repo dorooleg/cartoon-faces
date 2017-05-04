@@ -4,16 +4,17 @@ from PIL import Image, ImageTk
 import detector
 import cv2
 
+
 def init_camera(mask_name='mermaid'):
     return detector.init(mask_name)
 
 
-class SampleApp(Tk):
+class gui(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         self.geometry("600x600")
-        self.global_name = 'mermaid'
-        self.vs, self.pipeline, self.fd, self.image_names = init_camera(self.global_name)
+        self.global_name = ""
+        self.vs, self.pipeline, self.image_names = init_camera()
 
         separator = Frame(self, height=200, relief=SUNKEN)
         image = Image.open("./data/images/mermaid.png")
@@ -39,6 +40,8 @@ class SampleApp(Tk):
             b.pack(side=LEFT, expand=1)
 
     def callback(self):
+        if not hasattr(self, 'pipline'):
+            return
         frame = detector.create(self.vs, self.pipline)
         cv2_im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(cv2_im)
@@ -59,7 +62,7 @@ class SampleApp(Tk):
             name = event
         print(self.global_name, name)
         if self.global_name != name:
-            self.pipline = detector.replace_faces(name, self.fd)
+            self.pipline = detector.replace_faces(name)
         self.global_name = name
         if self.flag:
             self.flag = False
@@ -67,8 +70,9 @@ class SampleApp(Tk):
 
 
 def main():
-    app = SampleApp()
+    app = gui()
     app.mainloop()
+
 
 if __name__ == '__main__':
     main()
