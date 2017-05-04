@@ -48,7 +48,6 @@ class gui(Tk):
         if self.pipeline is None:
             return
         frame = detector.create(self.vs, self.pipeline)
-        cv2.imwrite("out.png", frame)
         cv2_im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(cv2_im)
         img2 = ImageTk.PhotoImage(img)
