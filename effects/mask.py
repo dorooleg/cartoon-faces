@@ -100,6 +100,7 @@ class PlainImposter(effect.Effect):
         self.faces_name = [random.choice(name) for _ in range(self.size_faces)]
         self.images = [all_mask[name][0] for name in self.faces_name]
         self.markups = [all_mask[name][1] for name in self.faces_name]
+        self.moves = [all_mask[name][2] for name in self.faces_name]
         self.markup_aligns = [item[face.ALIGN_POINTS] for item in self.markups]
         self.move = mask_move
         move = [[0, 0, self.move[0]],
@@ -118,17 +119,22 @@ class PlainImposter(effect.Effect):
         self.markup_align = mask_markup[face.ALIGN_POINTS]
         return self
 
-    def __warp_im(self, transposition, dshape, idx=1):
+    def __warp_im(self, transposition, dshape, marks, idx=0):
         res = np.zeros(dshape, dtype=self.image.dtype)
-        transposition += self.move
-        if idx is not 0:
-            cv2.warpAffine(self.images[idx],
+        if idx > 0:
+            move = [[0, 0, self.moves[idx - 1][0]],
+                    [0, 0, self.moves[idx - 1][1]],
+                    [0, 0, 0]]
+            move = np.array(move)
+            transposition = get_transposition(marks[face.ALIGN_POINTS], self.markup_aligns[idx]) + move
+            cv2.warpAffine(self.images[idx - 1],
                            transposition[:2],
                            (dshape[1], dshape[0]),
                            dst=res,
                            borderMode=cv2.BORDER_TRANSPARENT,
                            flags=cv2.WARP_INVERSE_MAP)
         else:
+            transposition += self.move
             cv2.warpAffine(self.image,
                            transposition[:2],
                            (dshape[1], dshape[0]),
@@ -143,10 +149,9 @@ class PlainImposter(effect.Effect):
         print("face count :", len(self.detector.detect(image)))
         for idx, marks in enumerate(self.detector.detect(image)):
             M = get_transposition(marks[face.ALIGN_POINTS], self.markup_align)
-            warped_im2 = self.__warp_im(M, res.shape, idx)
+            warped_im2 = self.__warp_im(M, res.shape, marks, idx)
             alpha = (warped_im2 == 0) * 255
             beta = 255 - alpha
-
             res[:] = np.bitwise_and(res, alpha)
             warped_im2[:] = np.bitwise_and(warped_im2[:], beta)
             res += warped_im2
