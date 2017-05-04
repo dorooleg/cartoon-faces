@@ -14,12 +14,12 @@ masks_move = {}
 mask_imposter = None
 
 
-def create_effect_pipeline(face_detector, mask_name):
+def create_effect_pipeline(mask_name):
     global masks_move, masks, mask_imposter
-    masks, names, masks_move = mask.Loader(detector=face_detector).load()
+    masks, names, masks_move = mask.Loader().load()
     mermaid = masks[mask_name]
     move = masks_move[mask_name]
-    mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], masks, move, face_detector)
+    mask_imposter = mask.PlainImposter(mermaid[0], mermaid[1], masks, move)
     pipeline = effect.Pipeline()
     pipeline.add_list([mask_imposter])
     return pipeline, names
@@ -41,8 +41,7 @@ def init(mask_name):
     # initialize dlib's face detector (HOG-based) and then create
     # the facial landmark predictor
     print('[INFO] loading facial landmark predictor...')
-    face_detector = face.Detector()
-    pipeline, image_names = create_effect_pipeline(face_detector, mask_name)
+    pipeline, image_names = create_effect_pipeline(mask_name)
 
     # initialize the video stream and allow the cammera sensor to warmup
     print('[INFO] camera sensor warming up...')

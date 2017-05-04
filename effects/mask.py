@@ -6,6 +6,16 @@ import effects.effect as effect
 import effects.face as face
 import random
 
+import effects.face as face
+
+class DetectorSingleton:
+    face_detector = None
+
+    def get():
+        if DetectorSingleton.face_detector is None:
+            DetectorSingleton.face_detector = face.Detector()
+        return DetectorSingleton.face_detector
+
 
 def get_transposition(pts1, pts2):
     """
@@ -44,11 +54,8 @@ def _traverse_dir(path):
 
 
 class Loader:
-    def __init__(self, **kargs):
-        if 'detector' in kargs:
-            self.detector = kargs['detector']
-        else:
-            self.detector = face.Detector()
+    def __init__(self):
+        self.detector = DetectorSingleton.get()
 
     def load(self):
         images_path = './data/images'
@@ -81,12 +88,12 @@ class Loader:
 
 
 class PlainImposter(effect.Effect):
-    def __init__(self, mask_image, mask_markup, all_mask, mask_move, detector):
+    def __init__(self, mask_image, mask_markup, all_mask, mask_move):
         self.image = mask_image
         self.markup = mask_markup
         self.move = mask_move
         self.markup_align = mask_markup[face.ALIGN_POINTS]
-        self.detector = detector
+        self.detector = DetectorSingleton.get()
         self.all_mask = all_mask
         self.name = [name for name, _ in all_mask.items()]
         # self.name_all_mask = name_all_mask
