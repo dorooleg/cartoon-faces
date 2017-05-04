@@ -8,6 +8,7 @@ import random
 
 import effects.face as face
 
+
 class DetectorSingleton:
     face_detector = None
 
@@ -91,28 +92,25 @@ class PlainImposter(effect.Effect):
     def __init__(self, mask_image, mask_markup, all_mask, mask_move):
         self.image = mask_image
         self.markup = mask_markup
-        self.move = mask_move
         self.markup_align = mask_markup[face.ALIGN_POINTS]
         self.detector = DetectorSingleton.get()
         self.all_mask = all_mask
-        self.name = [name for name, _ in all_mask.items()]
-        # self.name_all_mask = name_all_mask
-        # move = [[0, 0, -10],
-        #         [0, 0, -125], # -50
-        #         [0, 0, 0]]
-        print(self.move)
+        self.size_faces = 10
+        name = [name for name, _ in all_mask.items()]
+        self.faces_name = [random.choice(name) for _ in range(self.size_faces)]
+        self.images = [all_mask[name][0] for name in self.faces_name]
+        self.markups = [all_mask[name][1] for name in self.faces_name]
+        self.markup_aligns = [item[face.ALIGN_POINTS] for item in self.markups]
+        self.move = mask_move
         move = [[0, 0, self.move[0]],
-                [0, 0, self.move[1]],  # -50
+                [0, 0, self.move[1]],
                 [0, 0, 0]]
-        # move = [[0., 0, -10],
-        #         [0, 0.1, 0], # -50
-        #         [0, 0, 0]]
         self.move = np.array(move)
 
     def set_mask(self, mask_image, mask_markup, mask_move):
         self.move = mask_move
         move = [[0, 0, self.move[0]],
-                [0, 0, self.move[1]],  # -50
+                [0, 0, self.move[1]],
                 [0, 0, 0]]
         self.move = np.array(move)
         self.image = mask_image
@@ -123,23 +121,25 @@ class PlainImposter(effect.Effect):
     def __warp_im(self, transposition, dshape, idx=1):
         res = np.zeros(dshape, dtype=self.image.dtype)
         transposition += self.move
-        # if idx > 0:
-        #     name = random.choice(self.name)
-        #     self.image = self.all_mask[name][0]
-        #     self.markup = self.all_mask[name][1]
-        #     self.markup_align = self.all_mask[name][1][face.ALIGN_POINTS]
+        if idx is not 0:
+            cv2.warpAffine(self.images[idx],
+                           transposition[:2],
+                           (dshape[1], dshape[0]),
+                           dst=res,
+                           borderMode=cv2.BORDER_TRANSPARENT,
+                           flags=cv2.WARP_INVERSE_MAP)
+        else:
+            cv2.warpAffine(self.image,
+                           transposition[:2],
+                           (dshape[1], dshape[0]),
+                           dst=res,
+                           borderMode=cv2.BORDER_TRANSPARENT,
+                           flags=cv2.WARP_INVERSE_MAP)
 
-        cv2.warpAffine(self.image,
-                       transposition[:2],
-                       (dshape[1], dshape[0]),
-                       dst=res,
-                       borderMode=cv2.BORDER_TRANSPARENT,
-                       flags=cv2.WARP_INVERSE_MAP)
         return res
 
     def process(self, image):
         res = image[:]
-        self.face_count = len(self.detector.detect(image))
         print("face count :", len(self.detector.detect(image)))
         for idx, marks in enumerate(self.detector.detect(image)):
             M = get_transposition(marks[face.ALIGN_POINTS], self.markup_align)
