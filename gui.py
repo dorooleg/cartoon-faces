@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from tkinter import Tk, LEFT, SUNKEN, X, Label
 from tkinter.ttk import Frame, Button
 from PIL import Image, ImageTk
@@ -35,7 +36,7 @@ class gui(Tk):
             photo = ImageTk.PhotoImage(image)
             b = Button(image=photo, text=name, command=self.call)
             b.photo = photo
-            print(name)
+            print("[INFO] mask found: {}".format(name))
             b.bind("<ButtonPress-1>", self.call)
             b.pack(side=LEFT, expand=1)
 
@@ -60,7 +61,7 @@ class gui(Tk):
             name = event.widget.cget("text")
         else:
             name = event
-        print(self.global_name, name)
+        print("[LOG] replace mask from {} to {}".format(self.global_name, name))
         if self.global_name != name:
             self.pipline = detector.replace_faces(name)
         self.global_name = name
