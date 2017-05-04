@@ -55,7 +55,7 @@ class gui(Tk):
         self.label.configure(image=img2)
         self.label.image = img2
         self.update()
-        self.after(500, self.callback)
+        self.after(0, self.callback)
 
     def call(self, event=None):
         if event is None:

@@ -32,7 +32,7 @@ class Detector:
         self.predictor = dlib.shape_predictor(predictor_path)
 
     def detect(self, image):
-        rects = self.detector(image, 1)
+        rects = self.detector(image, 0)
 
         faces = []
         for rect in rects:
