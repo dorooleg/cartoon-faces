@@ -53,14 +53,15 @@ class Loader:
         images_path = './data/images'
         marks_path = './data/mask_landmarks'
         images, marks = {}, {}
-
         list_name_mask = {}
         for name, path in _traverse_dir(marks_path):
+            print(name, path)
             data = np.genfromtxt(path, delimiter=',', loose=True, invalid_raise=False)
             if data is not None and data.size > 0:
                 marks[name] = np.transpose(data)
 
         for name, path in _traverse_dir(images_path):
+            list_name_mask[name] = path
             image = cv2.imread(path, cv2.IMREAD_COLOR)
             if image is not None:
                 if name in marks:
@@ -69,7 +70,6 @@ class Loader:
                 faces = self.detector.detect(image)
                 if len(faces) > 0:
                     images[name] = image, faces[0]
-            list_name_mask[name] = path
         return images, list_name_mask
 
 

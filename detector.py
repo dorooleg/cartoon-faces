@@ -42,15 +42,12 @@ def init(mask_name):
 
 def create(vs, pipeline):
     im1 = vs.read()
+    # print(im1)
     im1 = imutils.resize(im1, width=400)
-    print(pipeline)
+    # print(pipeline)
     if hasattr(pipeline, '__len__') and len(pipeline) > 1:
         pipeline = pipeline[0]
     res = pipeline.process(im1)
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('q'):
-        return
-    print("create res")
     return res
 
 
