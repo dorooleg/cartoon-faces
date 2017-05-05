@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 from tkinter import Tk, LEFT, SUNKEN, X, Label
 from tkinter.ttk import Frame, Button
-from PIL import Image, ImageTk
-import detector
+
 import cv2
+from PIL import Image, ImageTk
 
 import effects.mask as mask
+from module import detector
 
 
 class gui(Tk):
