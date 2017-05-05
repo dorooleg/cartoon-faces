@@ -126,7 +126,7 @@ class PlainImposter(effect.Effect):
                     [0, 0, self.moves[idx - 1][1]],
                     [0, 0, 0]]
             move = np.array(move)
-            transposition = get_transposition(marks[face.ALIGN_POINTS], self.markup_aligns[idx]) + move
+            transposition = get_transposition(marks[face.ALIGN_POINTS], self.markup_aligns[idx - 1]) + move
             cv2.warpAffine(self.images[idx - 1],
                            transposition[:2],
                            (dshape[1], dshape[0]),
