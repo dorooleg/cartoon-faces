@@ -1,4 +1,5 @@
 
+
 # project
 data/classifiers/**/*
 !data/classifiers/.gitkeep
@@ -7,6 +8,7 @@ data/classifiers/**/*
 .idea
 
 # os
+<<<<<<< HEAD
 
 .directory
 .DS_Store
